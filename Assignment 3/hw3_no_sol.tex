@@ -1,0 +1,240 @@
+\documentclass{article}
+% Setting
+\usepackage{fouriernc}
+\usepackage[T1]{fontenc}
+
+% Formatting
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+
+% Text
+
+% Math
+\usepackage{mathtools, amssymb, bm, amsthm}
+\usepackage{bbm}
+% original mathcal
+\DeclareMathAlphabet{\mathcal}{OMS}{zplm}{m}{n}
+
+% Math Theorem
+
+% Math Shortcut
+\DeclareMathOperator{\sign}{sgn}
+\DeclareMathOperator{\samax}{softargmax}
+\DeclareMathOperator{\smax}{softmax}
+\DeclareMathOperator{\smin}{softmin}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+\newcommand{\matr}[1]{{#1}}     % ISO complying version
+\newcommand{\vect}[1]{{#1}}     % ISO complying version
+
+% Number sets
+\newcommand{\N}{\mathbb{N}} % Natural Numbers
+\newcommand{\Z}{\mathbb{Z}} % Integers
+\newcommand{\Q}{\mathbb{Q}} % Quotient
+\newcommand{\R}{\mathbb{R}}	% Real Numbers
+\newcommand{\E}{\mathbb{E}}	% Real Numbers
+% \newcommand{\C}{\mathbb{C}} % Complex Numbers
+
+% ML
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cN}{\mathcal{N}}
+
+\newcommand{\vx}{{x}}
+\newcommand{\vy}{{y}}
+\newcommand{\vb}{{b}}
+\newcommand{\vz}{{z}}
+\newcommand{\mW}{{W}}
+
+\newcommand{\pdv}[2]{\frac{\partial #1}{\partial #2}}
+
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+
+% Scientific notation
+
+%Drawing
+
+
+%Algorithm
+\usepackage[ruled,vlined]{algorithm2e}
+
+% Other
+\usepackage[shortlabels]{enumitem}
+\usepackage{cleveref}
+
+\usepackage{xcolor}
+
+\title{Homework 3: Energy-Based Models}
+\author{CSCI-GA 2572 Deep Learning}
+\date{Fall 2024}
+
+\begin{document}
+
+\maketitle
+
+The goal of homework 3 is to test your understanding of Energy-Based Models, and to show you one application in structured prediction.
+
+In the theoretical part, we'll mostly test your intuition. You'll need to write brief answers to questions about how EBMs work. In part 2, we will implement a simple optical character recognition system. 
+
+In part 1, you should submit all your answers in a pdf file. As before, we recommend using \LaTeX. 
+
+For part 2, you will implement some neural networks by adding your code to the provided ipynb file.
+
+The due date of homework 3 is 11:55pm \texttt{10/20}.
+Submit the following files in a zip file \texttt{your\_net\_id.zip} through NYU classes:
+\begin{itemize}
+\item \texttt{hw3\_theory.pdf}
+\item \texttt{hw3\_impl.ipynb}
+\end{itemize}
+
+The following behaviors will result in penalty of your final score:
+\begin{enumerate}
+\item 10\% penalty for submitting your file without using the correct naming format (including naming the zip file, PDF file or python file wrong, adding extra files in the zip folder, like the testing scripts in your zip file). 
+\item 10\% penalty for every extra day of lateness. Up to 4 days max (after that we won't accept submission).
+\item 20\% penalty for code submission that cannot be executed following the steps we mentioned.
+\end{enumerate}
+
+\section{Theory (50pt)}
+
+\subsection{Energy Based Models Intuition (15pts) }
+This question tests your intuitive understanding of Energy-based models and their properties. 
+\begin{enumerate}[(a)]
+
+\item (1pts) How do energy-based models allow for modeling situations where the mapping from input $x_i$ to output $y_i$ is not 1 to 1, but 1 to many, or even 1 to an infinite continuum of $y$?
+
+
+\item (1pts) How do energy-based models differ from models that output probabilities?
+
+
+\item  (2pts) How can you use energy function $F_W(x, y)$ to calculate a probability $p(y \mid x)$?
+
+
+
+\item (1pt) Is there a way to control the smoothness of the probability distribution $p(y|x)$ estimated from the energy function $F_W(x,y)$? How do we reduce the variance of $p(y|x)$?
+
+
+\item (2pts) What are the roles of the loss function and energy function? 
+
+
+
+\item (2pts) What problems can be caused by using only positive examples for energy (pushing down energy of correct inputs only)? How can it be avoided?
+
+
+
+\item 
+(2pts) Briefly explain the three methods that can be used to shape the energy function.
+
+
+
+\item (2pts) Provide an example of a loss function that uses negative examples. The format should be as follows $\ell_\text{example}(x, y, W) = F_W(x, y)$.
+
+
+
+\item (2pts) Say we have an energy function $F(x, y)$ with images $x$, classification for this image $y$.
+	Write down the mathematical expression for doing inference given an input $x$.
+	Now say we have a latent variable $z$, and our energy is $G(x, y, z)$.
+	What is the expression for doing inference then?
+
+
+
+
+
+\end{enumerate}
+
+
+\subsection{Negative log-likelihood loss (20 pts) }
+
+Let's consider an energy-based model we are training to do classification of input between n classes. $F_W(x, y)$ is the energy of input $x$ and class $y$. We consider n classes: $y \in \{1, \dots, n\}$.
+
+\begin{enumerate}[(i)]
+\item (2pts) For a given input $x$, write down an expression for a Gibbs distribution over labels $p(y|x)$ that this energy-based model specifies. Use $\beta$ for the constant multiplier.
+ 
+
+
+\item (5pts) Let's say for a particular data sample $x$, we have the label $y$. Give the expression for the negative log likelihood loss, i.e. negative log likelihood of the correct label (show step-by-step derivation of the loss function from the expression of the previous subproblem). For easier calculations in the following subproblem, multiply the loss by $\frac{1}{\beta}$.
+
+
+\item (8pts) Now, derive the gradient of that expression with respect to $W$ (just providing the final expression is not enough). Your final answer may contain the expression $\frac{\partial F_W(...)}{\partial W}$. Why can it be intractable to compute it, and how can we get around the intractability? 
+
+
+
+\item (5pts) Explain why negative log-likelihood loss pushes the energy of the correct example to negative infinity, and all others to positive infinity, no matter how close the two examples are, resulting in an energy surface with really sharp edges in case of continuous $y$ (this is usually not an issue for discrete $y$ because there's no distance measure between different classes).
+
+
+\end{enumerate}
+
+\subsection{Comparing Contrastive Loss Functions (15pts)}
+
+In this problem, we're going to compare a few contrastive loss functions. We are going to look at the behavior of the gradients, and understand what uses each loss function has. In the following subproblems, $m$ is a margin, $m \in \R$, $x$ is input, $y$ is the correct label, $\bar y$ is the incorrect label. Define the loss in the following format: $\ell_{example}(x, y, \bar y, W) = F_W(x, y)$.
+
+\begin{enumerate}[(a)]
+\item (2pts) \textbf{Simple loss function} is defined as follows:
+
+$$
+\ell_\text{simple}(x, y, \bar y, W) = \left[ F_W(x, y)\right]^+ + \left[m - F_W(x, \bar y)\right]^+
+$$
+
+Where $[z]^+ = max(0, z)$ 
+
+Assuming we know the derivative $\pdv{F_W(x, y)}{W}$ for any $x, y$, give an expression for the partial derivative of the $\ell_\text{simple}$ with respect to $W$.
+
+
+
+\item (2pts) \textbf{Hinge Loss} is defined as follows:
+$$
+\ell_\text{hinge}(x, y, \bar y, W) = \left[m + F_W(x,y) - F_W(x, \bar y)\right]^+
+$$
+
+Assuming we know the derivative $\pdv{F_W(x, y)}{W}$ for any $x, y$, give an expression for the partial derivative of the $\ell_\text{hinge}$ with respect to $W$.
+
+
+
+\item (2pts) \textbf{Log loss} is defined as follows:
+
+$$
+\ell_\text{log}(x, y, \bar y, W) = \log \left(1 +  e^{F_W(x, y) - F_W(x, \bar y)} \right)
+$$
+
+Assuming we know the derivative $\pdv{F_W(x, y)}{W}$ for any $x, y$, give an expression for the partial derivative of the $\ell_\text{log}$ with respect to $W$.
+
+
+
+\item (2pts) \textbf{Square-Square loss} is defined as follows:
+
+$$
+\ell_\text{square-square}(x, y, \bar y, W) = \left(\left[ F_W(x, y)\right]^+ \right)^2 + \left( \left[m - F_W(x, \bar y)\right]^+ \right)^2
+$$
+
+Assuming we know the derivative $\pdv{F_W(x, y)}{W}$ for any $x, y$, give an expression for the partial derivative of the $\ell_\text{square-square}$ with respect to $W$.
+
+
+\item (7pts) \textbf{Comparison.} 
+\begin{enumerate}[(i)]
+    \item (2pts) Explain how NLL loss is different from the three losses above.
+    \item (2pts) The hinge loss $\left[ F_W(x, y) - F_W(x, \bar y) + m \right]^+$ has a margin parameter $m$, which gives 0 loss when the positive and negative examples have energy that are $m$ apart.
+    		 The log loss is sometimes called a "soft-hinge" loss. Why? What is the advantage of using a soft hinge loss?
+    \item (2pts) How are the simple loss and square-square loss different from the hinge/log loss?
+    \item (1pt) In what situations would you use the simple loss, and in what situations would you use the square-square loss?
+\end{enumerate}
+
+
+\end{enumerate}
+
+
+\section{Implementation (50pt + 10pt extra credit)}
+
+Please add your solutions to this notebook
+\href{https://drive.google.com/file/d/1zDjkA0R8puzTkJsJqGLjqYhLfYLJtAMT/view?usp=sharing}{\texttt{hw3\_impl.ipynb}}
+.
+\textbf{Plase use your NYU account to access the notebook.} The notebook contains parts marked as \texttt{TODO}, where you should put your code or explanations. The notebook is a Google Colab notebook, you should copy it to your drive, add your solutions, and then download and submit it to NYU Classes. You're also free to run it on any other machine, as long as the version you send us can be run on Google Colab.
+
+
+\end{document}
